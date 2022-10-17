@@ -1,0 +1,221 @@
+<nav class="navbar navbar-icon-top navbar-expand-lg navbar-dark">
+  <a class="navbar-brand ml-5" href="#">Home</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"
+    (click)="navbarCollapsed = !navbarCollapsed">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="navbar-collapse" id="navbarSupportedContent" [class.collapse]="navbarCollapsed">
+    <ul class="navbar-nav mr-4">
+      <!-- <li class="nav-item active">
+        <a class="nav-link" href="#">
+          <i class="fa fa-home"></i>
+          Home
+          <span class="sr-only">(current)</span>
+          </a>
+      </li> -->
+      <li class="nav-item active">
+        <a (click)="logout()" class="nav-link" href="#">
+          <i class="fa fa-sign-out">
+          </i>
+          Logout
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<div class="container-fluid mt-5 mb-5">
+  <div class="row mt-3 mb-3">
+    <div class="col-sm-12 col-md-6">
+      <div class="card rounded-lg shadow-sm p-3">
+        <form>
+          <div class="card-body">
+            <h5 class="card-title">Shift</h5>
+            <label for="shifts" class="form-label">Choose shift:</label>
+            <span class="logged-in" *ngIf="result && result.shiftCond === true">● On shift</span>
+            <span class="logged-out" *ngIf="result && result.shiftCond === false">● Off shift</span>
+            <select name="shifts" id="shifts" [(ngModel)]="shift" class="form-control">
+              <option value="" selected disabled>select shift</option>
+              <option value="shift-1">Shift 1</option>
+              <option value="shift-2">Shift 2</option>
+              <option value="shift-3">Shift 3</option>
+            </select>
+            <p class="card-text pt-3">Note: once shift started can not be started again</p>
+            <button class="btn btn-primary mr-5" (click)="startShift(true)"
+              [disabled]="(result && result.shiftCond)|| !shift">Start</button>
+            <button class="btn btn-danger" (click)="endShift(false)"
+              [disabled]="!(result && result.shiftCond) || (result && result.lunch) || (result && result.break)">End</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col-sm-12 col-md-3 mt-3">
+      <div class="card rounded-lg shadow-sm p-3">
+        <div class="card-body">
+          <h5 class="card-title">Break</h5>
+          <label for="shifts" class="form-label">Start break:</label>
+          <span class="logged-in" *ngIf="result && result.break === true">● On Break</span>
+          <span class="logged-out" *ngIf="result && result.break === false">● Off Break</span>
+          <p class="card-text">Note: this can only be started when you start the shift</p>
+          <button class="btn btn-primary mr-5"
+            [disabled]="!(result && result.shiftCond) || (result && result.break) || (result && result.lunch)"
+            (click)="startOrEndBreak(true)">Start</button>
+          <button class="btn btn-danger"
+            [disabled]="!(result && result.shiftCond) || (result && !result.break) || (result && result.lunch)"
+            (click)="startOrEndBreak(false)">End</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-12 col-md-3 mt-3">
+      <div class="card rounded-lg shadow-sm p-3">
+        <div class="card-body">
+          <h5 class="card-title">Lunch Break</h5>
+          <label for="shifts" class="form-label">Lunch Break:</label>
+          <span class="logged-in" *ngIf="result && result.lunch === true">● On lunch</span>
+          <span class="logged-out" *ngIf="result && result.lunch === false">● Off lunch</span>
+          <p class="card-text">Note: this can only be started when you start the shift</p>
+          <button class="btn btn-primary mr-5"
+            [disabled]="!(result && result.shiftCond) || (result && result.break) || (result && result.lunch)"
+            (click)="startOrEndLunch(true)">Start</button>
+          <button class="btn btn-danger"
+            [disabled]="!(result && result.shiftCond) || (result && result.break) || (result && !result.lunch)"
+            (click)="startOrEndLunch(false)">End</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card rounded-lg shadow-sm p-3">
+        <div class="card-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">User Mail</th>
+                <th scope="col">Role</th>
+                <th scope="col">Shift</th>
+                <th scope="col" class="text-center">Shift Start Time</th>
+                <th scope="col" class="text-center">Shift End Time</th>
+                <th scope="col" class="text-center">Break</th>
+                <th scope="col" class="text-center">Lunch Break</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of tableDetail;let i=index">
+                <th scope="row">{{i+1}}</th>
+                <td>{{row.username}}</td>
+                <td>{{row.role}}</td>
+                <td>{{row.shift ? row.shift : 'N/A'}}</td>
+                <td class="text-center">{{row.startTime ? (row.startTime .toMillis() | date:'yyyy/MM/dd h:mm:ss a') : 'N/A'}}</td>
+                <td class="text-center">{{row.endTime ? (row.endTime .toMillis() | date:'yyyy/MM/dd h:mm:ss a') : 'N/A'}}</td>
+
+                <td class="text-center" *ngIf="(row.break === false || row.break === true);else noDetails">
+                  <button type="button" (click)="openPopup(row.uid, 'break')" class="view-icon">
+                    <i class="fa fa-eye" aria-hidden="true"></i>
+                  </button>
+                </td>
+                <ng-template #noDetails>
+                  <td class="text-center">N/A</td>
+                </ng-template>
+
+                <td class="text-center" *ngIf="(row.lunch === false || row.lunch === true);else noLDetails">
+                  <button type="button" (click)="openPopup(row.uid, 'lunch')" class="view-icon" data-toggle="modal">
+                    <i class="fa fa-eye" aria-hidden="true"></i>
+                  </button>
+                </td>
+                <ng-template #noLDetails>
+                  <td class="text-center">N/A</td>
+                </ng-template>
+              </tr>
+              <tr>
+                <th *ngIf="spinner && !tableDetail.length" colspan="8" class="text-center">
+                  <div class="spinner-grow text-secondary m-3" role="status">
+                    <span class="sr-only"></span>
+                  </div>
+                  <div class="spinner-grow text-secondary m-3" role="status">
+                    <span class="sr-only"></span>
+                  </div>
+                  <div class="spinner-grow text-secondary m-3" role="status">
+                    <span class="sr-only"></span>
+                  </div>
+                </th>
+              </tr>
+              <tr *ngIf="!spinner && !tableDetail.length">
+                <td colspan="10">
+                  <div class="table-spinner">
+                    <div class="spinner-text">
+                      No Data Found
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Break</h5>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-12">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Start Time</th>
+                  <th scope="col">End Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of breaksDetails;let i=index">
+                  <th scope="row">{{i+1}}</th>
+                  <td>{{row.breakSt ? (row.breakSt .toMillis() | date:'yyyy/MM/dd h:mm:ss a') : 'N/A'}}</td>
+                  <td>{{row.breakEt ? (row.breakEt .toMillis() | date:'yyyy/MM/dd h:mm:ss a') : 'N/A'}}</td>
+                </tr>
+                <tr>
+                  <th *ngIf="spinnerPopup && !breaksDetails.length" colspan="8" class="text-center">
+                    <div class="spinner-grow text-secondary m-3" role="status">
+                      <span class="sr-only"></span>
+                    </div>
+                    <div class="spinner-grow text-secondary m-3" role="status">
+                      <span class="sr-only"></span>
+                    </div>
+                    <div class="spinner-grow text-secondary m-3" role="status">
+                      <span class="sr-only"></span>
+                    </div>
+                  </th>
+                </tr>
+                <tr *ngIf="!spinnerPopup && !breaksDetails.length">
+                  <td colspan="10">
+                    <div class="table-spinner">
+                      <div class="spinner-text">
+                        No Data Found
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closePopup()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
